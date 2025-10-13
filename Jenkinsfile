@@ -2,39 +2,34 @@ pipeline {
     agent any
 
     stages {
-        stage('Test Email Ultime') {
+        stage('Test Email with Debug') {
             steps {
                 script {
-                    echo "🔥 Test ULTIME avec toutes les options..."
+                    echo "Current build environment:"
+                    echo "BUILD_NUMBER: ${env.BUILD_NUMBER}"
+                    echo "JOB_NAME: ${env.JOB_NAME}"
                     
-                    // Définir TOUTES les propriétés SMTP
-                    withEnv([
-                        'MAIL_SMTP_AUTH=true',
-                        'MAIL_SMTP_STARTTLS_ENABLE=true', 
-                        'MAIL_SMTP_HOST=smtp.gmail.com',
-                        'MAIL_SMTP_PORT=587',
-                        'MAIL_SMTP_USER=amina1daghari@gmail.com',
-                        'MAIL_SMTP_PASS=drgb csjs hjbn dedj'  // ⚠️ REMPLACEZ
-                    ]) {
-                        emailext (
-                            to: 'amina1daghari@gmail.com',
-                            subject: "TEST ULTIME - ${env.BUILD_NUMBER}",
-                            body: "Test ULTIME avec toutes les propriétés définies",
-                            mimeType: 'text/plain',
-                            
-                            // Forcer tous les paramètres
-                            smtpHost: 'smtp.gmail.com',
-                            smtpPort: '587',
-                            smtpAuth: 'true',
-                            smtpStartTls: 'true',
-                            authentication: 'amina1daghari@gmail.com',
-                            password: 'drgb csjs hjbn dedj'  // ⚠️ REMPLACEZ
-                        )
-                    }
+                    // Test with minimal configuration first
+                    emailext (
+                        to: 'amina1daghari@gmail.com',
+                        subject: "Minimal Test - ${env.BUILD_NUMBER}",
+                        body: """
+                            <h3>Test Email</h3>
+                            <p>Build: ${env.BUILD_NUMBER}</p>
+                            <p>Job: ${env.JOB_NAME}</p>
+                        """,
+                        mimeType: 'text/html'
+                    )
                     
-                    echo "✅ Test ultime terminé"
+                    echo "Email function completed"
                 }
             }
+        }
+    }
+    
+    post {
+        always {
+            echo "Build completed - check email status"
         }
     }
 }
