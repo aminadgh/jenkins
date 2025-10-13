@@ -2,39 +2,92 @@ pipeline {
     agent any
 
     tools {
-        jdk 'jdk17'      // ou le nom que tu as configuré dans Jenkins
-        maven 'Maven 3.9.0'   // pareil : vérifie le nom exact dans Manage Jenkins > Tools
+        jdk 'jdk17'
+        maven 'Maven 3.9.0'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // récupère le code depuis ton dépôt GitHub
                 git branch: 'main', url: 'https://github.com/aminadgh/jenkins.git'
             }
         }
 
         stage('Build') {
             steps {
-                // compile le projet
                 sh 'mvn clean compile'
             }
         }
-        stage('Test') {
-    steps {
-        sh 'mvn test'
-    }
-}
 
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    // Générer le rapport de tests même si les tests échouent
+                    sh 'mvn surefire-report:report'
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/site',
+                        reportFiles: 'surefire-report.html',
+                        reportName: 'Rapport de Tests'
+                    ])
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package -DskipTests'
+            }
+        }
+
+        stage('Analyse Qualité') {
+            steps {
+                // Vérification du code avec Checkstyle (optionnel)
+                sh 'mvn checkstyle:checkstyle'
+                publishHTML(target: [
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'target/site',
+                    reportFiles: 'checkstyle.html',
+                    reportName: 'Rapport Checkstyle'
+                ])
+            }
+        }
+
+        stage('Archivage') {
+            steps {
+                // Archiver le JAR généré
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                
+                // Archiver les résultats des tests
+                junit 'target/surefire-reports/*.xml'
+            }
+        }
     }
 
     post {
+        always {
+            // Nettoyage ou actions finales
+            echo "Build ${currentBuild.result} - Voir les détails: ${env.BUILD_URL}"
+        }
         success {
-            echo '✅ Compilation réussie !'
+            echo '✅ Pipeline exécuté avec succès !'
+            // Notification optionnelle
+            // emailext subject: "SUCCÈS Build ${env.JOB_NAME}", body: "Build réussi: ${env.BUILD_URL}"
         }
         failure {
-            echo '❌ Échec de la compilation !'
+            echo '❌ Échec du pipeline !'
+            // Notification optionnelle
+            // emailext subject: "ÉCHEC Build ${env.JOB_NAME}", body: "Build échoué: ${env.BUILD_URL}"
+        }
+        unstable {
+            echo '⚠️ Build instable (tests échoués mais compilation OK)'
         }
     }
 }
-
