@@ -2,31 +2,37 @@ pipeline {
     agent any
 
     stages {
-        stage('Test Configuration Complète') {
+        stage('Test Email Ultime') {
             steps {
                 script {
-                    echo "🔍 Test configuration SMTP complète..."
+                    echo "🔥 Test ULTIME avec toutes les options..."
                     
-                    emailext (
-                        to: 'amina1daghari@gmail.com',
-                        subject: "TEST COMPLET - ${env.BUILD_NUMBER}",
-                        body: """
-                        Test avec configuration SMTP complète
-                        Build: ${env.BUILD_NUMBER}
-                        Time: ${new Date()}
-                        """,
-                        mimeType: 'text/plain',
-                        // Configuration SMTP explicite
-                        smtpHost: 'smtp.gmail.com',
-                        smtpPort: '587',
-                        smtpAuth: 'true',
-                        smtpStartTls: 'true',
-                        // Authentification
-                        authentication: 'amina1daghari@gmail.com',
-                        password: 'drgb csjs hjbn dedj'  // Remplacez par votre vrai mot de passe d'application
-                    )
+                    // Définir TOUTES les propriétés SMTP
+                    withEnv([
+                        'MAIL_SMTP_AUTH=true',
+                        'MAIL_SMTP_STARTTLS_ENABLE=true', 
+                        'MAIL_SMTP_HOST=smtp.gmail.com',
+                        'MAIL_SMTP_PORT=587',
+                        'MAIL_SMTP_USER=amina1daghari@gmail.com',
+                        'MAIL_SMTP_PASS=drgb csjs hjbn dedj'  // ⚠️ REMPLACEZ
+                    ]) {
+                        emailext (
+                            to: 'amina1daghari@gmail.com',
+                            subject: "TEST ULTIME - ${env.BUILD_NUMBER}",
+                            body: "Test ULTIME avec toutes les propriétés définies",
+                            mimeType: 'text/plain',
+                            
+                            // Forcer tous les paramètres
+                            smtpHost: 'smtp.gmail.com',
+                            smtpPort: '587',
+                            smtpAuth: 'true',
+                            smtpStartTls: 'true',
+                            authentication: 'amina1daghari@gmail.com',
+                            password: 'drgb csjs hjbn dedj'  // ⚠️ REMPLACEZ
+                        )
+                    }
                     
-                    echo "✅ Email avec config complète envoyé"
+                    echo "✅ Test ultime terminé"
                 }
             }
         }
