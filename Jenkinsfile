@@ -2,20 +2,24 @@ pipeline {
     agent any
 
     stages {
-        stage('Test Email Simple') {
+        stage('Test Email avec Auth Forcée') {
             steps {
                 script {
-                    echo "🔍 Test email avec configuration globale..."
+                    echo "🔍 Test avec authentification forcée..."
                     
-                    // Version la plus simple
+                    // FORCER l'authentification SMTP
                     emailext (
                         to: 'amina1daghari@gmail.com',
-                        subject: "TEST SIMPLE PIPELINE - ${env.BUILD_NUMBER}",
-                        body: "Ceci est un test depuis le pipeline avec config globale",
-                        mimeType: 'text/plain'
+                        subject: "TEST AUTH FORCÉE - ${env.BUILD_NUMBER}",
+                        body: "Test avec authentification SMTP forcée",
+                        mimeType: 'text/plain',
+                        // Paramètres critiques
+                        smtpAuth: 'true',
+                        smtpStartTls: 'true',
+                        credentialsId: ''  // Laissez vide pour utiliser les credentials système
                     )
                     
-                    echo "✅ Email envoyé via configuration globale"
+                    echo "✅ Email avec auth forcée envoyé"
                 }
             }
         }
