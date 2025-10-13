@@ -2,24 +2,31 @@ pipeline {
     agent any
 
     stages {
-        stage('Test Email avec Auth Forcée') {
+        stage('Test Configuration Complète') {
             steps {
                 script {
-                    echo "🔍 Test avec authentification forcée..."
+                    echo "🔍 Test configuration SMTP complète..."
                     
-                    // FORCER l'authentification SMTP
                     emailext (
                         to: 'amina1daghari@gmail.com',
-                        subject: "TEST AUTH FORCÉE - ${env.BUILD_NUMBER}",
-                        body: "Test avec authentification SMTP forcée",
+                        subject: "TEST COMPLET - ${env.BUILD_NUMBER}",
+                        body: """
+                        Test avec configuration SMTP complète
+                        Build: ${env.BUILD_NUMBER}
+                        Time: ${new Date()}
+                        """,
                         mimeType: 'text/plain',
-                        // Paramètres critiques
+                        // Configuration SMTP explicite
+                        smtpHost: 'smtp.gmail.com',
+                        smtpPort: '587',
                         smtpAuth: 'true',
                         smtpStartTls: 'true',
-                        credentialsId: ''  // Laissez vide pour utiliser les credentials système
+                        // Authentification
+                        authentication: 'amina1daghari@gmail.com',
+                        password: 'drgb csjs hjbn dedj'  // Remplacez par votre vrai mot de passe d'application
                     )
                     
-                    echo "✅ Email avec auth forcée envoyé"
+                    echo "✅ Email avec config complète envoyé"
                 }
             }
         }
