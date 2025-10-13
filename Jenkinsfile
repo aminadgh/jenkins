@@ -12,6 +12,29 @@ pipeline {
             }
         }
 
+        stage('Test Email Avant Build') {
+            steps {
+                script {
+                    echo "🔍 TEST EMAIL AVANT BUILD..."
+                    try {
+                        emailext (
+                            subject: "TEST AVANT BUILD - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                            body: """
+                            <h2>Test Email AVANT le build</h2>
+                            <p>Si vous recevez ceci, les emails fonctionnent au début du pipeline.</p>
+                            <p><strong>Time:</strong> ${new Date().format('dd/MM/yyyy HH:mm:ss')}</p>
+                            """,
+                            to: "amina1daghari@gmail.com",
+                            mimeType: "text/html"
+                        )
+                        echo "✅ Email de test envoyé AVANT build"
+                    } catch (Exception e) {
+                        echo "❌ Erreur email avant build: ${e.message}"
+                    }
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'mvn clean compile'
@@ -45,7 +68,6 @@ pipeline {
         always {
             echo "✅ Build ${currentBuild.result} - Détails: ${env.BUILD_URL}"
             
-            // Publier le rapport de tests
             publishHTML(target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
@@ -57,67 +79,30 @@ pipeline {
         }
         success {
             echo "📧 Envoi de l'email de succès..."
-            emailext (
-                subject: "✅ SUCCÈS - Build ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """
-                <h2>Build Réussi ! 🎉</h2>
-                <p><strong>Projet:</strong> ${env.JOB_NAME}</p>
-                <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
-                <p><strong>Statut:</strong> SUCCÈS ✅</p>
-                <p><strong>Durée:</strong> ${currentBuild.durationString}</p>
-                <p><strong>Détails:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-                <p><strong>Date:</strong> ${new Date().format('dd/MM/yyyy HH:mm:ss')}</p>
-                <br/>
-                <p>Cordialement,<br/>Jenkins CI/CD</p>
-                """,
-                to: "amina1daghari@gmail.com",
-                replyTo: "amina1daghari@gmail.com",
-                mimeType: "text/html"
-            )
-        }
-        failure {
-            echo "📧 Envoi de l'email d'échec..."
-            emailext (
-                subject: "❌ ÉCHEC - Build ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """
-                <h2>Build Échoué ! ⚠️</h2>
-                <p><strong>Projet:</strong> ${env.JOB_NAME}</p>
-                <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
-                <p><strong>Statut:</strong> ÉCHEC ❌</p>
-                <p><strong>Durée:</strong> ${currentBuild.durationString}</p>
-                <p><strong>Détails:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-                <p><strong>Date:</strong> ${new Date().format('dd/MM/yyyy HH:mm:ss')}</p>
-                <p><strong>Cause probable:</strong> Vérifier les tests ou la compilation</p>
-                <br/>
-                <p>Action requise !</p>
-                <p>Cordialement,<br/>Jenkins CI/CD</p>
-                """,
-                to: "amina1daghari@gmail.com",
-                replyTo: "amina1daghari@gmail.com",
-                mimeType: "text/html"
-            )
-        }
-        unstable {
-            echo "📧 Envoi de l'email instable..."
-            emailext (
-                subject: "⚠️ INSTABLE - Build ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """
-                <h2>Build Instable ⚠️</h2>
-                <p><strong>Projet:</strong> ${env.JOB_NAME}</p>
-                <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
-                <p><strong>Statut:</strong> INSTABLE ⚠️</p>
-                <p><strong>Durée:</strong> ${currentBuild.durationString}</p>
-                <p><strong>Détails:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-                <p><strong>Date:</strong> ${new Date().format('dd/MM/yyyy HH:mm:ss')}</p>
-                <p><strong>Cause:</strong> Tests échoués mais compilation OK</p>
-                <br/>
-                <p>Vérification nécessaire.</p>
-                <p>Cordialement,<br/>Jenkins CI/CD</p>
-                """,
-                to: "amina1daghari@gmail.com",
-                replyTo: "amina1daghari@gmail.com",
-                mimeType: "text/html"
-            )
+            script {
+                try {
+                    emailext (
+                        subject: "✅ SUCCÈS - Build ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                        body: """
+                        <h2>Build Réussi ! 🎉</h2>
+                        <p><strong>Projet:</strong> ${env.JOB_NAME}</p>
+                        <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
+                        <p><strong>Statut:</strong> SUCCÈS ✅</p>
+                        <p><strong>Durée:</strong> ${currentBuild.durationString}</p>
+                        <p><strong>Détails:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                        <p><strong>Date:</strong> ${new Date().format('dd/MM/yyyy HH:mm:ss')}</p>
+                        <br/>
+                        <p>Cordialement,<br/>Jenkins CI/CD</p>
+                        """,
+                        to: "amina1daghari@gmail.com",
+                        replyTo: "amina1daghari@gmail.com",
+                        mimeType: "text/html"
+                    )
+                    echo "✅ Email de succès envoyé avec succès"
+                } catch (Exception e) {
+                    echo "❌ ERREUR email succès: ${e.message}"
+                }
+            }
         }
     }
 }
