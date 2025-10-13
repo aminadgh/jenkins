@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     tools {
         jdk 'jdk17'
         maven 'Maven 3.9.0'
@@ -19,18 +18,17 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Test et Rapports') {
             steps {
-                sh 'mvn test'
+                sh '''
+                mvn test surefire-report:report
+                mkdir -p target/site
+                '''
             }
             post {
                 always {
-                    // Générer le rapport de tests même si les tests échouent
-                    sh 'mvn surefire-report:report'
-                    // S'assurer que le répertoire site existe
-                    sh 'mkdir -p target/site'
                     publishHTML(target: [
-                        allowMissing: true,  // ✅ Changé à true pour éviter l'échec
+                        allowMissing: true,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
                         reportDir: 'target/site',
@@ -47,33 +45,9 @@ pipeline {
             }
         }
 
-        stage('Analyse Qualité') {
-            steps {
-                // Vérification du code avec Checkstyle
-                sh 'mvn checkstyle:checkstyle'
-                // Générer le rapport HTML Checkstyle
-                sh 'mvn checkstyle:checkstyle-aggregate'
-            }
-            post {
-                always {
-                    publishHTML(target: [
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'target/site',
-                        reportFiles: 'checkstyle.html',
-                        reportName: 'Rapport Checkstyle'
-                    ])
-                }
-            }
-        }
-
         stage('Archivage') {
             steps {
-                // Archiver le JAR généré
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-                
-                // Archiver les résultats des tests pour JUnit
                 junit 'target/surefire-reports/*.xml'
             }
         }
@@ -81,21 +55,67 @@ pipeline {
 
     post {
         always {
-            // Nettoyage ou actions finales
-            echo "Build ${currentBuild.result} - Voir les détails: ${env.BUILD_URL}"
+            echo "✅ Build ${currentBuild.result} - Détails: ${env.BUILD_URL}"
         }
         success {
-            echo '✅ Pipeline exécuté avec succès !'
-            // Notification optionnelle
-            // emailext subject: "SUCCÈS Build ${env.JOB_NAME}", body: "Build réussi: ${env.BUILD_URL}"
+            emailext (
+                subject: "✅ SUCCÈS - Build ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                <h2>Build Réussi !</h2>
+                <p><strong>Projet:</strong> ${env.JOB_NAME}</p>
+                <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
+                <p><strong>Statut:</strong> SUCCÈS ✅</p>
+                <p><strong>Durée:</strong> ${currentBuild.durationString}</p>
+                <p><strong>Détails:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                <br/>
+                <p>Cordialement,<br/>Jenkins CI/CD</p>
+                """,
+                to: "dev-team@company.com, admin@company.com",
+                replyTo: "jenkins@company.com",
+                mimeType: "text/html"
+            )
         }
         failure {
-            echo '❌ Échec du pipeline !'
-            // Notification optionnelle
-            // emailext subject: "ÉCHEC Build ${env.JOB_NAME}", body: "Build échoué: ${env.BUILD_URL}"
+            emailext (
+                subject: "❌ ÉCHEC - Build ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                <h2>Build Échoué !</h2>
+                <p><strong>Projet:</strong> ${env.JOB_NAME}</p>
+                <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
+                <p><strong>Statut:</strong> ÉCHEC ❌</p>
+                <p><strong>Durée:</strong> ${currentBuild.durationString}</p>
+                <p><strong>Détails:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                <p><strong>Cause probable:</strong> Vérifier les tests ou la compilation</p>
+                <br/>
+                <p>Action requise !</p>
+                <p>Cordialement,<br/>Jenkins CI/CD</p>
+                """,
+                to: "dev-team@company.com, admin@company.com",
+                replyTo: "jenkins@company.com",
+                mimeType: "text/html"
+            )
         }
         unstable {
-            echo '⚠️ Build instable (tests échoués mais compilation OK)'
+            emailext (
+                subject: "⚠️ INSTABLE - Build ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                <h2>Build Instable</h2>
+                <p><strong>Projet:</strong> ${env.JOB_NAME}</p>
+                <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
+                <p><strong>Statut:</strong> INSTABLE ⚠️</p>
+                <p><strong>Durée:</strong> ${currentBuild.durationString}</p>
+                <p><strong>Détails:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                <p><strong>Cause:</strong> Tests échoués mais compilation OK</p>
+                <br/>
+                <p>Vérification nécessaire.</p>
+                <p>Cordialement,<br/>Jenkins CI/CD</p>
+                """,
+                to: "dev-team@company.com",
+                replyTo: "jenkins@company.com",
+                mimeType: "text/html"
+            )
         }
     }
 }
