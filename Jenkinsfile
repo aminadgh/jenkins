@@ -52,6 +52,14 @@ pipeline {
                 sh 'mvn package -DskipTests'
             }
         }
+        stage('Docker Build') {
+    steps {
+        script {
+            sh 'docker build -t student-management:latest .'
+        }
+    }
+}
+
 
         stage('Analyse Qualité') {
             steps {
