@@ -27,8 +27,10 @@ pipeline {
                 always {
                     // Générer le rapport de tests même si les tests échouent
                     sh 'mvn surefire-report:report'
+                    // S'assurer que le répertoire site existe
+                    sh 'mkdir -p target/site'
                     publishHTML(target: [
-                        allowMissing: false,
+                        allowMissing: true,  // ✅ Changé à true pour éviter l'échec
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
                         reportDir: 'target/site',
@@ -47,16 +49,22 @@ pipeline {
 
         stage('Analyse Qualité') {
             steps {
-                // Vérification du code avec Checkstyle (optionnel)
+                // Vérification du code avec Checkstyle
                 sh 'mvn checkstyle:checkstyle'
-                publishHTML(target: [
-                    allowMissing: true,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'target/site',
-                    reportFiles: 'checkstyle.html',
-                    reportName: 'Rapport Checkstyle'
-                ])
+                // Générer le rapport HTML Checkstyle
+                sh 'mvn checkstyle:checkstyle-aggregate'
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/site',
+                        reportFiles: 'checkstyle.html',
+                        reportName: 'Rapport Checkstyle'
+                    ])
+                }
             }
         }
 
@@ -65,7 +73,7 @@ pipeline {
                 // Archiver le JAR généré
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 
-                // Archiver les résultats des tests
+                // Archiver les résultats des tests pour JUnit
                 junit 'target/surefire-reports/*.xml'
             }
         }
