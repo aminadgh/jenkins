@@ -71,8 +71,8 @@ pipeline {
                 <br/>
                 <p>Cordialement,<br/>Jenkins CI/CD</p>
                 """,
-                to: "dev-team@company.com, admin@company.com",
-                replyTo: "jenkins@company.com",
+                to: "amina1daghari@gmail.com",  // ← CORRIGÉ ICI
+                replyTo: "amina1daghari@gmail.com",  // ← ET ICI
                 mimeType: "text/html"
             )
         }
@@ -92,8 +92,8 @@ pipeline {
                 <p>Action requise !</p>
                 <p>Cordialement,<br/>Jenkins CI/CD</p>
                 """,
-                to: "dev-team@company.com, admin@company.com",
-                replyTo: "jenkins@company.com",
+                to: "amina1daghari@gmail.com",
+                replyTo: "amina1daghari@gmail.com",
                 mimeType: "text/html"
             )
         }
@@ -112,8 +112,8 @@ pipeline {
                 <p>Vérification nécessaire.</p>
                 <p>Cordialement,<br/>Jenkins CI/CD</p>
                 """,
-                to: "dev-team@company.com",
-                replyTo: "jenkins@company.com",
+                to: "amina1daghari@gmail.com",
+                replyTo: "amina1daghari@gmail.com",
                 mimeType: "text/html"
             )
         }
