@@ -59,6 +59,16 @@ pipeline {
         }
     }
 }
+        stage('Docker Compose Up') {
+    steps {
+        script {
+            // Stop et prune les anciens containers/images si besoin
+            sh 'docker compose down || echo "No containers to stop"'
+            sh 'docker compose up -d --build'
+        }
+    }
+}
+
 
 
         stage('Analyse Qualité') {
