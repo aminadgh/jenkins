@@ -93,7 +93,7 @@ pipeline {
         }
         stage('Analyse SonarQube') {
     steps {
-        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+        withCredentials([string(credentialsId: 'jenkinsfinal', variable: 'SONAR_TOKEN')]) {
             sh """
                 mvn sonar:sonar \
                 -Dsonar.projectKey=aminadghjenkins \
