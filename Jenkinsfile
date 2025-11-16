@@ -91,6 +91,16 @@ pipeline {
                 }
             }
         }
+        stage('Analyse SonarQube') {
+    environment {
+        SONAR_HOST_URL = 'http://sonarqube:9000'
+        SONAR_LOGIN = credentials('sonar-token') // Jenkins credentials
+    }
+    steps {
+        sh 'mvn sonar:sonar -Dsonar.projectKey=student-management -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN'
+    }
+}
+
 
         stage('Archivage') {
             steps {
