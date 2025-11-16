@@ -93,11 +93,11 @@ pipeline {
         }
         stage('Analyse SonarQube') {
     environment {
-        SONAR_HOST_URL = 'http://sonarqube:9000'
-        SONAR_LOGIN = credentials('jenkinsfinal') // Jenkins credentials
+        SONAR_HOST_URL = 'https://sonarcloud.io'
+        SONAR_LOGIN = credentials('jenkinsfinal') // l’ID que tu as défini
     }
     steps {
-        sh 'mvn sonar:sonar -Dsonar.projectKey=student-management -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN'
+        sh 'mvn sonar:sonar -Dsonar.projectKey=student-management -Dsonar.organization=aminadgh -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN'
     }
 }
 
